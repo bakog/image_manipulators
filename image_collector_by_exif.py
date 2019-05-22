@@ -108,7 +108,7 @@ for root, dirs, files in os.walk(start_dir, topdown=True):
                         target_dir = dest_dir_no_exif
                         file_counter_dest_dir_no_exif += 1
 
-                except:
+                except AssertionError:
                     # ha a fájl kiterjesztés képre utal, de mégsem
                     #target_dir = dest_dir_no_exif
                     file_counter_bad_image +=1
