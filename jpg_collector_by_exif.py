@@ -135,20 +135,27 @@ def get_image_hash_in_dir(dirname: str) -> set:
     Create a set of file hash from files in dirname.
     """
     file_hash_in_target_dir = set()
-    count_of_files_in_start_dir = sum([len(files) for r, d, files in os.walk(dirname)])
+    count_of_files_in_dest_dir = sum([len(files) for r, d, files in os.walk(dirname)])
 
-    with tqdm(total=count_of_files_in_start_dir) as pbar:
-        if check_dir_exists(dirname):
+    if count_of_files_in_dest_dir != 0:
 
-            for root, dirs, files in os.walk(dirname, topdown=True):
-                for file in files:
-                    pbar.update(1)
-                    name, ext = os.path.splitext(file)
-                    if ext.lower() in [".jpg", ".jpeg"]:
-                        filename = os.path.join(root, file)
-                        file_hash_in_target_dir.add(get_file_hash(filename))
+        with tqdm(total=count_of_files_in_dest_dir) as pbar:
+            if count_of_files_in_dest_dir == 0:
+                pbar.update()
+
+            if check_dir_exists(dirname):
+
+                for root, dirs, files in os.walk(dirname, topdown=True):
+                    for file in files:
+                        pbar.update()
+                        name, ext = os.path.splitext(file)
+                        if ext.lower() in [".jpg", ".jpeg"]:
+                            filename = os.path.join(root, file)
+                            file_hash_in_target_dir.add(get_file_hash(filename))
 
     return file_hash_in_target_dir
+
+
 
 
 def get_file_hash(filename: str) -> str:
@@ -162,6 +169,9 @@ def get_file_hash(filename: str) -> str:
 
 
 def set_timestamp_in_filename(filename: str) -> str:
+    """
+    Add timestamp to end of filename.
+    """
     now = datetime.datetime.now()
     now_filepart = str(now.hour).zfill(2) + str(now.minute).zfill(2) + str(now.second).zfill(
         2) + str(now.microsecond).zfill(6)
@@ -199,8 +209,10 @@ def main():
     file_counter_bad_image = 0
     file_count_deleted = 0
 
+
     for root, dirs, files in os.walk(start_dir, topdown=True):
         for name in files:
+
             original_name = name
             original_name_with_path = os.path.join(root, name)
             filename, filename_ext = os.path.splitext(name)
