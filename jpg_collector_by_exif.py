@@ -1,12 +1,35 @@
 # -*- coding: utf-8 -*-
 
-from exif import Image
 import datetime
-import hashlib
+
+try:
+    import hashlob
+except ImportError:
+    print("A program futásához szükséges 'hashlib' modul nem taláható!")
+    print("Telepítse a 'pip install hashlib' parancs beírásával, majd futtassa újra a programot!")
+
 import os
-from termcolor import colored
+
+try:
+    from exif import Image
+except ImportError:
+    print("A program futásához szükséges 'exif' modul nem taláható!")
+    print("Telepítse a 'pip install exif' parancs beírásával, majd futtassa újra a programot!")
+
+try:
+    from termcolor import colored
+except ImportError:
+    print("A program futásához szükséges 'termcolor' modul nem taláható!")
+    print("Telepítse a 'pip install termcolor' parancs beírásával, majd futtassa újra a programot!")
+
+
 import time
-from tqdm import tqdm
+
+try:
+    from tqdm import tqdm
+except ImportError:
+    print("A program futásához szükséges 'tqdm' modul nem taláható!")
+    print("Telepítse a 'pip install tqdm' parancs beírásával, majd futtassa újra a programot!")
 
 # import traceback
 # import filecmp
@@ -156,8 +179,6 @@ def get_image_hash_in_dir(dirname: str) -> set:
     return file_hash_in_target_dir
 
 
-
-
 def get_file_hash(filename: str) -> str:
 
     """
@@ -209,7 +230,6 @@ def main():
     file_counter_bad_image = 0
     file_count_deleted = 0
 
-
     for root, dirs, files in os.walk(start_dir, topdown=True):
         for name in files:
 
@@ -231,7 +251,7 @@ def main():
                     else:
                         target_dir = dest_dir_no_exif
                 except AssertionError:
-                    error_message("Az EXIF információ nem elérhető... "+original_name)
+                    error_message("\nAz EXIF információ nem elérhető... "+original_name)
                     file_counter_bad_image += 1
                     # sys.exit()
                     continue
@@ -277,12 +297,12 @@ def main():
             ' fájl esetén a fájlnevet kiegészítettem időbélyeggel, mert már volt ilyen fájl más tartalommal'
           )
 
-    info_message(
+    warning_message(
             "Úgy tűnik " + str(file_counter_bad_image) +
             ' db. fájl van, ami kiterjesztését tekintve kép, de mégsem az...'
           )
 
-    info_message(
+    error_message(
             str(file_count_deleted) +
             " fájl már létezett a célkönyvtárban (azonos tartalommal) így ezek törölve lettek a forrás könyvtárban!"
           )
