@@ -248,8 +248,7 @@ def main():
                 file_hash = get_file_hash(original_name_with_path)
 
                 if file_hash in file_hash_in_dest_dir:
-                    warning_message("Már létezik ugyanilyen tartalmú fájl a \
-                                    célkönyvtárban, ezért törlöm a forráskönyvtárban...")
+                    warning_message("Már létezik ugyanilyen tartalmú fájl a célkönyvtárban, ezért törlöm a forráskönyvtárban...")
                     file_count_deleted += 1
                     os.remove(original_name_with_path)
                 else:
