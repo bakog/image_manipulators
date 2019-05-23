@@ -1,39 +1,43 @@
 # -*- coding: utf-8 -*-
 
+import sys
+
 import datetime
 
 try:
-    import hashlob
+    import hashlib
 except ImportError:
-    print("A program futásához szükséges 'hashlib' modul nem taláható!")
-    print("Telepítse a 'pip install hashlib' parancs beírásával, majd futtassa újra a programot!")
+    tip = """A program futásához szükséges 'hashlib' modul nem taláható!
+                Telepítse a 'pip install hashlib' parancs beírásával, majd futtassa újra a programot!"""
+    sys.exit(tip)
 
 import os
 
 try:
     from exif import Image
 except ImportError:
-    print("A program futásához szükséges 'exif' modul nem taláható!")
-    print("Telepítse a 'pip install exif' parancs beírásával, majd futtassa újra a programot!")
+    tip = """"A program futásához szükséges 'exif' modul nem taláható!
+                Telepítse a 'pip install exif' parancs beírásával, majd futtassa újra a programot!"""
+    sys.exit(tip)
 
 try:
     from termcolor import colored
 except ImportError:
-    print("A program futásához szükséges 'termcolor' modul nem taláható!")
-    print("Telepítse a 'pip install termcolor' parancs beírásával, majd futtassa újra a programot!")
-
+    tip = """"A program futásához szükséges 'termcolor' modul nem taláható!
+            Telepítse a 'pip install termcolor' parancs beírásával, majd futtassa újra a programot!"""
+    sys.exit(tip)
 
 import time
 
 try:
     from tqdm import tqdm
 except ImportError:
-    print("A program futásához szükséges 'tqdm' modul nem taláható!")
-    print("Telepítse a 'pip install tqdm' parancs beírásával, majd futtassa újra a programot!")
+    tip = """"A program futásához szükséges 'tqdm' modul nem taláható!
+                Telepítse a 'pip install tqdm' parancs beírásával, majd futtassa újra a programot!"""
+    sys.exit(tip)
 
 # import traceback
 # import filecmp
-# import sys
 
 
 def convert_relative_path_to_absolute(dirname: str) -> str:
