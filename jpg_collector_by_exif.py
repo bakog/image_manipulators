@@ -2,39 +2,22 @@
 
 import sys
 
-import datetime
-
 try:
     import hashlib
-except ImportError:
-    tip = """A program futásához szükséges 'hashlib' modul nem taláható!
-                Telepítse a 'pip install hashlib' parancs beírásával, majd futtassa újra a programot!"""
-    sys.exit(tip)
-
-import os
-
-try:
     from exif import Image
-except ImportError:
-    tip = """"A program futásához szükséges 'exif' modul nem taláható!
-                Telepítse a 'pip install exif' parancs beírásával, majd futtassa újra a programot!"""
-    sys.exit(tip)
-
-try:
     from termcolor import colored
-except ImportError:
-    tip = """"A program futásához szükséges 'termcolor' modul nem taláható!
-            Telepítse a 'pip install termcolor' parancs beírásával, majd futtassa újra a programot!"""
-    sys.exit(tip)
-
-import time
-
-try:
+    import time
     from tqdm import tqdm
-except ImportError:
-    tip = """"A program futásához szükséges 'tqdm' modul nem taláható!
-                Telepítse a 'pip install tqdm' parancs beírásával, majd futtassa újra a programot!"""
-    sys.exit(tip)
+    import os
+    import datetime
+
+except ImportError as exc:
+    import_error_message = '''
+    A program futásához szükséges '{0}' modul nem taláható!
+    Telepítse a 'pip install {0}' parancs beírásával, majd futtassa újra a programot!'''.format(exc.name)
+
+    print(import_error_message)
+    sys.exit(1)
 
 # import traceback
 # import filecmp
