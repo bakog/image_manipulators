@@ -23,6 +23,9 @@ except ImportError as exc:
 # import filecmp
 
 
+CONFIG_FILENAME = "jpg_collector_script_hash_data"
+CONFIG_FILENAME_EXT = ".txt"
+
 def convert_relative_path_to_absolute(dirname: str) -> str:
 
     """
@@ -121,9 +124,9 @@ def get_exif_info(filename_with_path: str):
             else:
                 return None
 
-        except AssertionError:
+        except:
             # ha a fájl kiterjesztés képre utal, de mégsem
-            # traceback.print_exc()
+            traceback.print_exc()
             raise
 
 
@@ -166,6 +169,36 @@ def get_image_hash_in_dir(dirname: str) -> set:
     return file_hash_in_target_dir
 
 
+def save_image_hash_to_file(hash_of_files: set):
+
+    filename = set_date_in_filename(CONFIG_FILENAME)
+
+    full_filename = filename+CONFIG_FILENAME_EXT
+
+    with open(full_filename, "w") as outfile:
+        for item in hash_of_files:
+            outfile.write(item+'\n')
+
+
+def open_image_hash_from_file() -> set:
+
+    hash_of_files = set()
+
+    filename = set_date_in_filename(CONFIG_FILENAME)
+
+    full_filename = filename+CONFIG_FILENAME_EXT
+
+    try:
+        with open(full_filename, "r") as in_file:
+            for line in in_file:
+                hash_of_files.add(line)
+    except IOError:
+        info_message("Még nem készült  friss nyilvántartás a célkönyvtár fájljairól, most készítek egyet...")
+
+    return hash_of_files
+
+
+
 def get_file_hash(filename: str) -> str:
 
     """
@@ -188,6 +221,17 @@ def set_timestamp_in_filename(filename: str) -> str:
     time.sleep(1 / 100)
     return filename
 
+def set_date_in_filename(filename: str) -> str:
+    """
+    Add timestamp to end of filename.
+    """
+    now = datetime.datetime.now()
+    now_filepart = str(now.year).zfill(4) + str(now.month).zfill(2) + str(now.day).zfill(
+        2)
+
+    filename += "_" + now_filepart
+    return filename
+
 
 def main():
     """
@@ -207,10 +251,15 @@ def main():
     dest_dir = get_dir("cél")
     dest_dir_no_exif = create_no_exif_data_dir(dest_dir)
 
-    info_message("A meglévő fájlok ellenőrzése a cél könyvtárban....")
-    info_message("Sok kép esetén a folyamat hosszabb ideig tart, várjon türelemmel...")
+    file_hash_in_dest_dir = open_image_hash_from_file()
+    if not file_hash_in_dest_dir:
+        info_message("A meglévő fájlok ellenőrzése a cél könyvtárban....")
+        info_message("Sok kép esetén a folyamat hosszabb ideig tart, várjon türelemmel...")
+        file_hash_in_dest_dir = get_image_hash_in_dir(dest_dir)
 
-    file_hash_in_dest_dir = get_image_hash_in_dir(dest_dir)
+    save_image_hash_to_file(file_hash_in_dest_dir)
+
+
     file_counter_for_same_name = 0
     file_counter_dest_dir_no_exif = 0
     file_counter_dest_dir = 0
@@ -237,13 +286,17 @@ def main():
                         target_dir = dest_dir
                     else:
                         target_dir = dest_dir_no_exif
-                except AssertionError:
+                except:
+                    target_dir = dest_dir_no_exif
+
                     error_message("\nAz EXIF információ nem elérhető... "+original_name)
                     file_counter_bad_image += 1
                     # sys.exit()
-                    continue
+                    # continue
 
                 new_name = filename + filename_ext
+
+                print(new_name)
 
                 file_hash = get_file_hash(original_name_with_path)
 
@@ -253,23 +306,29 @@ def main():
                     os.remove(original_name_with_path)
                 else:
                     # A forrás állomány áthelyezése a célkönyvtárba
-                    if os.path.isfile(os.path.join(target_dir, new_name)):
-                        # már van ilyen nevű fájl és a kettő tartalma nem egyezik meg,
-                        # ezért a fájlnevet ellátjuk időbélyeggel is
-                        warning_message("Már van ilyen nevű fájl és a kettő tartalma nem egyezik meg...")
-                        filename = set_timestamp_in_filename(new_name)
-                        new_name = filename + filename_ext
-                        file_counter_for_same_name += 1
+                    try:
 
-                    message = " ".join(["Áthelyezés: ", original_name_with_path, os.path.join(target_dir, new_name)])
-                    info_message(message)
-                    if target_dir == dest_dir:
-                        file_counter_dest_dir += 1
-                    else:
-                        file_counter_dest_dir_no_exif += 1
+                        if os.path.isfile(os.path.join(target_dir, new_name)):
+                            # már van ilyen nevű fájl és a kettő tartalma nem egyezik meg,
+                            # ezért a fájlnevet ellátjuk időbélyeggel is
+                            warning_message("Már van ilyen nevű fájl és a kettő tartalma nem egyezik meg...")
+                            filename = set_timestamp_in_filename(new_name)
+                            new_name = filename + filename_ext
+                            file_counter_for_same_name += 1
 
-                    file_hash_in_dest_dir.add(file_hash)
-                    os.rename(original_name_with_path, os.path.join(target_dir, new_name))
+                        message = " ".join(["Áthelyezés: ", original_name_with_path, os.path.join(target_dir, new_name)])
+                        info_message(message)
+                        if target_dir == dest_dir:
+                            file_counter_dest_dir += 1
+                        else:
+                            file_counter_dest_dir_no_exif += 1
+
+                        file_hash_in_dest_dir.add(file_hash)
+                        os.rename(original_name_with_path, os.path.join(target_dir, new_name))
+                    except:
+
+                        print("Hiba lépett fel a következő fájl esetén: ", os.path.join(target_dir, new_name))
+                        continue
 
     warning_message("\n\nÖsszegzés: \n")
 
@@ -285,7 +344,7 @@ def main():
 
     warning_message(
             "Úgy tűnik " + str(file_counter_bad_image) +
-            ' db. fájl van, ami kiterjesztését tekintve kép, de mégsem az...'
+            ' db. fájl van, ami kiterjesztését tekintve kép, de az exif információk nem elérhetőek...'
           )
 
     error_message(
