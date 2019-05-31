@@ -1,95 +1,74 @@
 # -*- coding: utf-8 -*-
 
-import os
 import sys
-from exif import Image
-import datetime
-import time
-import filecmp
 
-start_dir = input("Adja meg a kezdőkönyvtár nevét! ")
+try:
+    import os
+    import datetime
+    import time
 
-if not start_dir:
-    start_dir = "./teszt_kepek"
+except ImportError as exc:
+    import_error_message = '''
+    A program futásához szükséges '{0}' modul nem taláható!
+    Telepítse a 'pip install {0}' parancs beírásával, majd futtassa újra a programot!'''.format(exc.name)
 
-konyvtarak = set()
+    print(import_error_message)
+    sys.exit(1)
 
-inkey = "öüóőúéáűíÖÜÓŐÚÉÁŰÍ "
-outkey = "ouooueauiouooueaui_"
-delkey = ',?;:.-§¬~+^!˘%°/˛=`(˙)´˝¨¸÷×$ß¤'
-t = str.maketrans(inkey, outkey, delkey)
+from jpg_collector_by_exif import get_dir, get_exif_info, info_message, error_message
 
-if os.path.exists(start_dir):
+
+def get_timestamp() -> str:
+    """
+    Add timestamp to end of filename.
+    """
+    now = datetime.datetime.now()
+    now_filepart = str(now.hour).zfill(2) + str(now.minute).zfill(2) + str(now.second).zfill(
+        2) + str(now.microsecond).zfill(6)
+
+    time.sleep(1 / 100)
+    return now_filepart
+
+def main():
+
+    start_dir = get_dir("forrás")
+    file_counter = 1
 
     for root, dirs, files in os.walk(start_dir, topdown=True):
-        #print("Fájlok: ")
+
         for name in files:
-            old_name = name
-            print(os.path.join(root, name))
-            print("ROOT: ",root)
 
+            original_name = name
+            original_name_with_path = os.path.join(root, name)
+            filename, filename_ext = os.path.splitext(name)
+            # filename = clean_file_name(filename)
 
+            # jpg fájlokból kiszedjük az exif információt
 
-            filename_parts = []
-            filename_parts = name.split(".")
-            #filename, filename_ext = name.split(".")
-            # for part in len(filename_parts)-2:
-            filename_parts_2 = [x.strip() for x in filename_parts]
+            if filename_ext.lower() in ['.jpg', '.jpeg']:
+                try:
 
-            filename = "_".join(filename_parts_2[:-1])
+                    image_date_converted = get_exif_info(original_name_with_path)
 
-            print(filename)
+                    if image_date_converted:
+                        # filename = set_exif_info_in_filename(image_date_converted, filename)
 
-            #sys.exit()
-            filename_ext = filename_parts[-1]
-            filename_new = filename.translate(t)
+                        new_name = 'IMG_' + str(file_counter).zfill(6) + "_" + image_date_converted + filename_ext.lower()
+                        message = " ".join(
+                            ["Áthelyezés: ", original_name_with_path, os.path.join(root, new_name)])
+                        info_message(message)
+                        os.rename(original_name_with_path, os.path.join(root, new_name))
 
-            #print(os.path.join(root, name))
-            if filename_ext in ['jpg', 'JPG', 'jpeg', 'JPEG']:
-                with open(os.path.join(root, old_name), 'rb') as image_file:
-                    try:
-                        my_image = Image(image_file)
-                        image_date = my_image.get('datetime_original', None)
-                        if image_date:
-                            image_date_converted = image_date.replace(":", '_').replace(" ", '_')
-                            print(image_date, image_date_converted)
-                            if image_date_converted not in filename_new:
-                                filename_new += "_"+image_date_converted
-                    except:
-                        print("Az EXIF információ nem elérhető...")
+                except:
+                    error_message("\nAz EXIF információ nem elérhető... " + original_name)
+                    new_name = 'IMG_' + str(file_counter).zfill(6) + "_" + get_timestamp() + filename_ext.lower()
+                    message = " ".join(
+                        ["Áthelyezés: ", original_name_with_path, os.path.join(root, new_name)])
+                    info_message(message)
+                    os.rename(original_name_with_path, os.path.join(root, new_name))
 
+                    # sys.exit()
+            file_counter += 1
 
-            new_name = ".".join([filename_new.lower(), filename_ext])
-            print(os.path.join(root, new_name))
-            if os.path.isfile(os.path.join(root, new_name)) and not filecmp.cmp(os.path.join(root, new_name), os.path.join(root, old_name)):
-
-                print("már van ilyen nevű fájl és a kettő tartalma nem egyezik meg...")
-                now = datetime.datetime.now()
-                now_filepart = str(now.hour)+str(now.minute)+str(now.second)+str(now.microsecond)
-                print(now_filepart)
-                new_name_part1, new_name_part2 = new_name.split(".")
-                new_name_part1 += "_"+now_filepart
-                new_name = ".".join([new_name_part1, new_name_part2])
-                print(new_name)
-
-                os.rename(os.path.join(root, old_name), os.path.join(root, new_name))
-                time.sleep(1/100)
-
-            else:
-
-                os.rename(os.path.join(root, old_name), os.path.join(root, new_name))
-
-
-        # #print("Könyvtárak")
-        # for name in dirs:
-        #     konyvtarak.add(os.path.join(root, name))
-        #     #print(os.path.join(root, name))
-
-
-else:
-    print("Nincs ilyen könyvtár!")
-
-
-# print("A könyvtár alkönyvtárai: ")
-# for d in konyvtarak:
-#     print(d)
+if __name__ == "__main__":
+    main()
