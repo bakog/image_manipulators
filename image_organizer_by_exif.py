@@ -33,6 +33,14 @@ def create_dir(dirname: str):
 
 
 def main():
+    """
+        Havi, illetve napi bontásban csoportosítja a képeket az exif információk alapján.
+        pl.
+        2019-05:
+            2019-05-12
+            2019-05-26
+            ...
+    """
 
     start_dir = get_dir("forrás")
 
@@ -61,7 +69,7 @@ def main():
                         info_message(message)
                         os.rename(original_name_with_path, os.path.join(target_dir, new_name))
 
-                except AssertionError:
+                except:
                     error_message("\nAz EXIF információ nem elérhető... " + original_name)
                     # sys.exit()
                     continue
