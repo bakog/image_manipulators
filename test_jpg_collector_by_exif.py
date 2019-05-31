@@ -15,8 +15,8 @@ sample_dir = os.path.join(working_dir, "sample_data")
 dest_dir_no_exif = target_dir_for_tests + "/no_exif_data"
 
 picture_without_exif_1 = os.path.join(sample_dir, "pictures_without_exif/DSCN0017.JPG")
-picture_with_exif_in_filename = os.path.join(sample_dir, "pictures_with_exif/DSCF0922_2006_01_01_09_30_29.JPG")
-picture_with_exif_not_in_filename = os.path.join(sample_dir, "pictures_with_exif/DSCF0791.JPG")
+picture_with_exif_in_filename = os.path.join(sample_dir, "pictures_with_exif/080726_1019_2008_08_07_11_58_32.jpg")
+picture_with_exif_not_in_filename = os.path.join(sample_dir, "pictures_with_exif/080726.jpg")
 
 
 def setup():
@@ -54,10 +54,10 @@ def test_clean_file_name_function():
 def test_get_exif_info_function():
 
     assert get_exif_info(picture_without_exif_1) == None
-    assert get_exif_info(picture_with_exif_in_filename) == "2006_01_01_09_30_29"
+    assert get_exif_info(picture_with_exif_in_filename) == "2008_08_07_11_58_32"
 
 def teyt_set_exif_info_in_filename():
-    assert get_exif_info(picture_with_exif_in_filename) == "DSCF0922_2006_01_01_09_30_29.JPG"
-    assert get_exif_info(picture_with_exif_not_in_filename) == "DSCF0791_2005_08_13_14_23_06.JPG"
+    assert get_exif_info(picture_with_exif_in_filename) == "080726_1019_2008_08_07_11_58_32.jpg"
+    assert get_exif_info(picture_with_exif_not_in_filename) == "080726_1020_2008_08_07_11_58_58.jpg"
 
 
