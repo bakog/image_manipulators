@@ -5,6 +5,7 @@ import sys
 try:
     import hashlib
     from exif import Image
+    import re
     from termcolor import colored
     import time
     from tqdm import tqdm
@@ -25,6 +26,7 @@ except ImportError as exc:
 
 CONFIG_FILENAME = "jpg_collector_script_hash_data"
 CONFIG_FILENAME_EXT = ".txt"
+
 
 def convert_relative_path_to_absolute(dirname: str) -> str:
 
@@ -97,12 +99,27 @@ def clean_file_name(filename: str) -> str:
     Clean filaname variable from undesirable chars.
     """
 
-    inkey = "öüóőúéáűíÖÜÓŐÚÉÁŰÍ "
-    outkey = "ouooueauiouooueaui_"
-    delkey = ',?;:.-§¬~+^!˘%°/˛=`(˙)´˝¨¸÷×$ß¤'
-    t = str.maketrans(inkey, outkey, delkey)
+    inkey = "öüóőúéáűíÖÜÓŐÚÉÁŰÍ"
+    outkey = "ouooueauiouooueaui"
+    # delkey = ',?;:.-§¬~+^!˘%°/˛=`(˙)´˝¨¸÷×$ß¤@'
 
-    return filename.strip().translate(t)
+    # levágjuk a felesleges szóközöket és feldaraboljuk szóközönként, ha van benne
+    filename_part = list(filename.strip().split())
+
+    # a fájlnév darabjai összefűzzük _ jellel
+    cleaned_string = "_".join(filename_part)
+
+    # kiszedjük a magyar ékezetes karaktereket
+    t = str.maketrans(inkey, outkey)
+    cleaned_string = cleaned_string.translate(t)
+
+    # eltávolítjuk az  összes nem odaillő karaktert, kivéve az _ jelet
+    cleaned_string = re.sub('[^A-Za-z0-9_]+', '', cleaned_string)
+
+    # levágjuk a felesleges _ jeleket a végeiről, majd a többször előforduló _ jelet egy _-ra cseréljük
+    cleaned_string = re.sub('_{2,}', '_', cleaned_string.strip('_'))
+
+    return cleaned_string
 
 
 def get_exif_info(filename_with_path: str):
@@ -119,6 +136,7 @@ def get_exif_info(filename_with_path: str):
             image_date = my_image.get('datetime_original', None)
             if image_date:
                 # az exif információ átalakítása
+                image_date = image_date.replace(chr(0), "")
                 image_date_converted = image_date.replace(":", '_').replace(" ", '_')
                 return image_date_converted
             else:
@@ -126,8 +144,9 @@ def get_exif_info(filename_with_path: str):
 
         except:
             # ha a fájl kiterjesztés képre utal, de mégsem
-            traceback.print_exc()
-            raise
+            # traceback.print_exc()
+            return None
+            #raise
 
 
 def set_exif_info_in_filename(image_date_converted: str, filename: str) -> str:
@@ -198,7 +217,6 @@ def open_image_hash_from_file() -> set:
     return hash_of_files
 
 
-
 def get_file_hash(filename: str) -> str:
 
     """
@@ -220,6 +238,7 @@ def set_timestamp_in_filename(filename: str) -> str:
     filename += "_" + now_filepart
     time.sleep(1 / 100)
     return filename
+
 
 def set_date_in_filename(filename: str) -> str:
     """
@@ -259,7 +278,6 @@ def main():
 
     save_image_hash_to_file(file_hash_in_dest_dir)
 
-
     file_counter_for_same_name = 0
     file_counter_dest_dir_no_exif = 0
     file_counter_dest_dir = 0
@@ -277,22 +295,24 @@ def main():
             # jpg fájlokból kiszedjük az exif információt
 
             if filename_ext.lower() in ['.jpg', '.jpeg']:
-                try:
+                # try:
 
-                    image_date_converted = get_exif_info(original_name_with_path)
+                image_date_converted = get_exif_info(original_name_with_path)
 
-                    if image_date_converted:
-                        filename = set_exif_info_in_filename(image_date_converted, filename)
-                        target_dir = dest_dir
-                    else:
-                        target_dir = dest_dir_no_exif
-                except:
+                if image_date_converted:
+                    filename = set_exif_info_in_filename(image_date_converted, filename)
+                    target_dir = dest_dir
+                else:
                     target_dir = dest_dir_no_exif
+                    error_message("\nAz EXIF információ nem elérhető... " + original_name)
 
-                    error_message("\nAz EXIF információ nem elérhető... "+original_name)
-                    file_counter_bad_image += 1
-                    # sys.exit()
-                    # continue
+                # except:
+                #     target_dir = dest_dir_no_exif
+                #
+                #     error_message("\nAz EXIF információ nem elérhető... "+original_name)
+                #     file_counter_bad_image += 1
+                #     # sys.exit()
+                #     # continue
 
                 new_name = filename + filename_ext
 
@@ -312,7 +332,7 @@ def main():
                             # már van ilyen nevű fájl és a kettő tartalma nem egyezik meg,
                             # ezért a fájlnevet ellátjuk időbélyeggel is
                             warning_message("Már van ilyen nevű fájl és a kettő tartalma nem egyezik meg...")
-                            filename = set_timestamp_in_filename(new_name)
+                            filename = set_timestamp_in_filename(filename)
                             new_name = filename + filename_ext
                             file_counter_for_same_name += 1
 
