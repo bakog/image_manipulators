@@ -24,7 +24,7 @@ except ImportError as exc:
 # import filecmp
 
 
-CONFIG_FILENAME = "jpg_collector_script_hash_data"
+CONFIG_FILENAME = "files_hash_data_in_current_dir_or_subdirs"
 CONFIG_FILENAME_EXT = ".txt"
 
 
@@ -161,7 +161,7 @@ def set_exif_info_in_filename(image_date_converted: str, filename: str) -> str:
     return filename
 
 
-def get_image_hash_in_dir(dirname: str) -> set:
+def get_file_hash_in_dir(dirname: str) -> set:
 
     """
     Create a set of file hash from files in dirname.
@@ -188,7 +188,7 @@ def get_image_hash_in_dir(dirname: str) -> set:
     return file_hash_in_target_dir
 
 
-def save_image_hash_to_file(hash_of_files: set):
+def save_file_hash_to_file(hash_of_files: set):
 
     filename = set_date_in_filename(CONFIG_FILENAME)
 
@@ -199,7 +199,7 @@ def save_image_hash_to_file(hash_of_files: set):
             outfile.write(item+'\n')
 
 
-def open_image_hash_from_file() -> set:
+def open_file_hash_from_file() -> set:
 
     hash_of_files = set()
 
@@ -270,13 +270,13 @@ def main():
     dest_dir = get_dir("cél")
     dest_dir_no_exif = create_no_exif_data_dir(dest_dir)
 
-    file_hash_in_dest_dir = open_image_hash_from_file()
+    file_hash_in_dest_dir = open_file_hash_from_file()
     if not file_hash_in_dest_dir:
         info_message("A meglévő fájlok ellenőrzése a cél könyvtárban....")
         info_message("Sok kép esetén a folyamat hosszabb ideig tart, várjon türelemmel...")
-        file_hash_in_dest_dir = get_image_hash_in_dir(dest_dir)
+        file_hash_in_dest_dir = get_file_hash_in_dir(dest_dir)
 
-    save_image_hash_to_file(file_hash_in_dest_dir)
+    save_file_hash_to_file(file_hash_in_dest_dir)
 
     file_counter_for_same_name = 0
     file_counter_dest_dir_no_exif = 0
