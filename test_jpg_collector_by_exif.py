@@ -5,7 +5,7 @@ import os
 import shutil
 import time
 
-from jpg_collector_by_exif import check_dir_exists, create_no_exif_data_dir, clean_file_name, get_exif_info, set_exif_info_in_filename, get_image_hash_in_dir
+from jpg_collector_by_exif import check_dir_exists, create_no_exif_data_dir, clean_file_name, get_exif_info, set_exif_info_in_filename, get_file_hash_in_dir
 
 working_dir = os.getcwd()
 temp_root_dir_for_tests = os.path.join(working_dir, "tmp")
@@ -56,9 +56,9 @@ def test_get_exif_info_function():
     assert get_exif_info(picture_without_exif_1) == None
     assert get_exif_info(picture_with_exif_in_filename) == "2008_08_07_11_58_32"
 
-def test_set_exif_info_in_filename():
+def test_set_exif_info_in_filename_function():
     assert set_exif_info_in_filename(picture_with_exif_in_filename) == "080726_1019_2008_08_07_11_58_32.jpg"
     assert set_exif_info_in_filename(picture_with_exif_not_in_filename) == "080726_1020_2008_08_07_11_58_58.jpg"
 
-def test_get_image_hash_in_dir():
+def test_get_file_hash_in_dir_function():
     pass
