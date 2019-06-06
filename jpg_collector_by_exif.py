@@ -210,7 +210,7 @@ def open_file_hash_from_file() -> set:
     try:
         with open(full_filename, "r") as in_file:
             for line in in_file:
-                hash_of_files.add(line)
+                hash_of_files.add(line.strip())
     except IOError:
         info_message("Még nem készült  friss nyilvántartás a célkönyvtár fájljairól, most készítek egyet...")
 
