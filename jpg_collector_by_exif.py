@@ -161,13 +161,38 @@ def set_exif_info_in_filename(image_date_converted: str, filename: str) -> str:
     return filename
 
 
+def get_count_of_files_in_dir(dirname: str) -> int:
+    """
+    Visszaadja a megadott köynvtár fájljainak a számát!
+    :param dirname:
+    :return:  int
+    """
+    count_of_files_in_dir = sum([len(files) for r, d, files in os.walk(dirname)])
+    return count_of_files_in_dir
+
+
+def check_hash_file_exists(filename: str) -> bool:
+    """
+
+    :param filename:
+    :return:
+    """
+    filename = set_date_in_filename(CONFIG_FILENAME)
+
+    full_filename = filename+CONFIG_FILENAME_EXT
+
+    if os.path.exists(full_filename):
+        return True
+    return False
+
+
 def get_file_hash_in_dir(dirname: str) -> set:
 
     """
     Create a set of file hash from files in dirname.
     """
     file_hash_in_target_dir = set()
-    count_of_files_in_dest_dir = sum([len(files) for r, d, files in os.walk(dirname)])
+    count_of_files_in_dest_dir = get_count_of_files_in_dir(dirname)
 
     if count_of_files_in_dest_dir != 0:
 
@@ -207,12 +232,10 @@ def open_file_hash_from_file() -> set:
 
     full_filename = filename+CONFIG_FILENAME_EXT
 
-    try:
+    if check_hash_file_exists(full_filename):
         with open(full_filename, "r") as in_file:
             for line in in_file:
                 hash_of_files.add(line.strip())
-    except IOError:
-        info_message("Még nem készült  friss nyilvántartás a célkönyvtár fájljairól, most készítek egyet...")
 
     return hash_of_files
 
@@ -271,9 +294,11 @@ def main():
     dest_dir_no_exif = create_no_exif_data_dir(dest_dir)
 
     file_hash_in_dest_dir = open_file_hash_from_file()
-    if not file_hash_in_dest_dir:
+
+    # nincs napi szintű hash információ a célkönyvtár fájljairól, vagy elavult a fájlok darabszáma alapján...
+    if not file_hash_in_dest_dir or len(file_hash_in_dest_dir) != get_count_of_files_in_dir(dest_dir):
         info_message("A meglévő fájlok ellenőrzése a cél könyvtárban....")
-        info_message("Sok kép esetén a folyamat hosszabb ideig tart, várjon türelemmel...")
+        info_message("Sok fájl esetén a folyamat hosszabb ideig tart, várjon türelemmel...")
         file_hash_in_dest_dir = get_file_hash_in_dir(dest_dir)
 
 
@@ -349,7 +374,8 @@ def main():
                         print("Hiba lépett fel a következő fájl esetén: ", os.path.join(target_dir, new_name))
                         continue
 
-    save_file_hash_to_file(file_hash_in_dest_dir)
+    if file_hash_in_dest_dir:
+        save_file_hash_to_file(file_hash_in_dest_dir)
 
     warning_message("\n\nÖsszegzés: \n")
 
