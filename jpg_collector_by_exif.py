@@ -276,7 +276,6 @@ def main():
         info_message("Sok kép esetén a folyamat hosszabb ideig tart, várjon türelemmel...")
         file_hash_in_dest_dir = get_file_hash_in_dir(dest_dir)
 
-    save_file_hash_to_file(file_hash_in_dest_dir)
 
     file_counter_for_same_name = 0
     file_counter_dest_dir_no_exif = 0
@@ -349,6 +348,8 @@ def main():
 
                         print("Hiba lépett fel a következő fájl esetén: ", os.path.join(target_dir, new_name))
                         continue
+
+    save_file_hash_to_file(file_hash_in_dest_dir)
 
     warning_message("\n\nÖsszegzés: \n")
 
